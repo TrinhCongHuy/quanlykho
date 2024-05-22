@@ -1,0 +1,34 @@
+{ 
+    "sidebar":[
+        {
+            "path":"/",
+            "id": 1,
+            "name": "Trang Chủ"
+        },
+        {
+            "path":"/gioi-thieu",
+            "id": 2,
+            "name": "Giới Thiệu"
+        },
+        {
+            "path":"/dich-vu",
+            "id": 3,
+            "name": "Dịch Vụ"
+        },
+        {
+            "path":"/don-vi",
+            "id": 4,
+            "name": "Đơn Vị"
+        },
+        {
+            "path":"/News",
+            "id": 5,
+            "name": "Tin Tức"
+        },
+        {
+            "path":"/lien-he",
+            "id": 6,
+            "name": "Liên Hệ"
+        }
+    ]
+}
