@@ -35,7 +35,7 @@ function EditProduct() {
         }
       })
       .catch((error) => {
-        console.error("Error fetching data:", error);
+        console.error("Lỗi data:", error);
       });
 
       get(child(dbRef, 'Category'))
@@ -54,7 +54,7 @@ function EditProduct() {
         }
       })
       .catch((error) => {
-        console.error('Lỗi :', error);
+        console.error('Lỗi data:', error);
       });
   }, [id]);
 
