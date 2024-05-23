@@ -11,12 +11,13 @@ function EditProduct() {
     categoryCode: "",
     unit: "",
     description: "",
-    images: [],
+    image: "",
     quantity: "",
     price: "",
   });
 
-  const [selectedImages, setSelectedImages] = useState([]);
+  const [newImage, setNewImage] = useState("");  
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     const dbRef = ref(getDatabase());
@@ -24,48 +25,75 @@ function EditProduct() {
     get(child(dbRef, `Products/${id}`))
       .then((snapshot) => {
         if (snapshot.exists()) {
-          setProduct(snapshot.val());
-          setSelectedImages(snapshot.val().images || []);
+          const data = snapshot.val();
+          setProduct(data);
+          if (data.image) {
+            setNewImage(data.image);  
+          }
         } else {
-          console.log("Lỗi data");
+          console.log("Không tìm thấy data.");
         }
       })
       .catch((error) => {
-        console.error(error);
+        console.error("Error fetching data:", error);
+      });
+
+      get(child(dbRef, 'Category'))
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          const fetchedCategories = [];
+          snapshot.forEach((childSnapshot) => {
+            const catData = childSnapshot.val();
+            fetchedCategories.push({
+              id: childSnapshot.key, 
+              categoryCode: catData.category, 
+              name: catData.nameID 
+            });
+          });
+          setCategories(fetchedCategories);
+        }
+      })
+      .catch((error) => {
+        console.error('Lỗi :', error);
       });
   }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProduct({
-      ...product,
+    setProduct(prevState => ({
+      ...prevState,
       [name]: value,
-    });
+    }));
   };
 
   const handleImageChange = (e) => {
-    if (e.target.files) {
-      const filesArray = Array.from(e.target.files).map((file) =>
-        URL.createObjectURL(file)
-      );
-      setSelectedImages((prevImages) => prevImages.concat(filesArray));
+    if (e.target.files[0]) {
+      const imageUrl = URL.createObjectURL(e.target.files[0]);
+      setNewImage(imageUrl);
+      setProduct(prevState => ({
+        ...prevState,
+        image: imageUrl  
+      }));
     }
   };
 
   const handleUpdate = () => {
     const db = getDatabase();
     const updates = {
-      [`Products/${id}`]: product,
+      [`Products/${id}`]: product
     };
 
     update(ref(db), updates)
       .then(() => {
-        alert("Cập nhật sản phẩm thành công");
+        alert("Update sản phẩm thành công");
       })
       .catch((error) => {
-        alert("Lỗi cập nhật sản phẩm:", error);
+        alert("Lỗi update sản phẩm:", error);
       });
   };
+
+  console.log('product', product)
+  console.log('categories', categories)
 
   return (
     <div>
@@ -84,6 +112,7 @@ function EditProduct() {
               name="productCode"
               value={product.productCode}
               onChange={handleChange}
+              disabled
               className="mt-1 p-2 border border-gray-300 rounded-md w-full"
             />
           </div>
@@ -105,13 +134,18 @@ function EditProduct() {
             <label className="block text-sm font-medium text-gray-700">
               Mã danh mục
             </label>
-            <input
-              type="text"
+            <select
               name="categoryCode"
               value={product.categoryCode}
               onChange={handleChange}
               className="mt-1 p-2 border border-gray-300 rounded-md w-full"
-            />
+            >
+              {categories.map((category) => (
+                <option key={category.id} value={category.categoryCode}>
+                  {category.categoryCode}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="mb-4">
@@ -119,19 +153,15 @@ function EditProduct() {
               Hình ảnh
             </label>
             <div className="flex gap-2 mt-2">
-              {selectedImages.map((image, index) => (
-                <img
-                  key={index}
-                  src={image}
-                  alt="Product"
-                  className="w-20 h-20 object-cover rounded-md"
-                />
-              ))}
+              <img
+                src={newImage || product.image}
+                alt="Product"
+                className="w-20 h-20 object-cover rounded-md"
+              />
               <label className="flex items-center justify-center w-20 h-20 bg-gray-200 border-2 border-dashed border-gray-300 rounded-md cursor-pointer">
                 <span className="text-gray-500">Chọn ảnh</span>
                 <input
                   type="file"
-                  multiple
                   className="hidden"
                   onChange={handleImageChange}
                 />
@@ -155,7 +185,7 @@ function EditProduct() {
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">
-              Đơn giá
+              Giá
             </label>
             <input
               type="number"
